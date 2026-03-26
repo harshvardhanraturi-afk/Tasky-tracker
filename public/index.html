@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tasky Team Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --blue:   #1a73e8;
+  --green:  #34a853;
+  --yellow: #fbbc04;
+  --red:    #ea4335;
+  --orange: #e65100;
+  --bg:     #f0f4f9;
+  --card:   #ffffff;
+  --border: #e0e0e0;
+  --text:   #1f1f1f;
+  --muted:  #5f6368;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Google Sans Text','Google Sans',sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── Topbar ── */
+.topbar {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 6px rgba(0,0,0,.08);
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.logo { width: 36px; height: 36px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; }
+.topbar h1 { font-family: 'Google Sans',sans-serif; font-size: 20px; font-weight: 600; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.live-wrap { display: flex; align-items: center; gap: 6px; }
+.live-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.live-label { font-size: 12px; color: var(--muted); }
+.btn { padding: 8px 16px; border-radius: 8px; border: none; font-family: 'Google Sans',sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background .15s; text-decoration: none; }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: #1557b0; }
+.btn-outline { background: #fff; color: var(--blue); border: 1px solid var(--border); }
+.btn-outline:hover { background: #f8f9fa; }
+
+/* ── Page ── */
+.page { padding: 28px 32px; max-width: 1440px; margin: 0 auto; }
+
+/* ── Filters ── */
+.filters { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+.filter-label { font-size: 13px; color: var(--muted); font-weight: 500; }
+.filter-btn { padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: #fff; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--muted); transition: all .15s; }
+.filter-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+input[type="date"] { padding: 6px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 12px; font-family: inherit; color: var(--text); background: #fff; outline: none; }
+input[type="date"]:focus { border-color: var(--blue); }
+
+/* ── Summary cards ── */
+.summary-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 16px; margin-bottom: 28px; }
+.summary-card { background: var(--card); border-radius: var(--radius); padding: 20px 24px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+.summary-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+.summary-value { font-size: 30px; font-weight: 700; font-family: 'Google Sans',sans-serif; color: var(--text); font-variant-numeric: tabular-nums; }
+.summary-sub { font-size: 12px; color: var(--muted); }
+.summary-card.blue   .summary-value { color: var(--blue); }
+.summary-card.green  .summary-value { color: var(--green); }
+.summary-card.yellow .summary-value { color: #b06000; }
+.summary-card.red    .summary-value { color: var(--red); }
+.summary-card.orange .summary-value { color: var(--orange); }
+
+/* ── Main layout ── */
+.main-grid { display: grid; grid-template-columns: 1fr 360px; gap: 20px; align-items: start; }
+
+/* ── Card ── */
+.card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px; }
+.card:last-child { margin-bottom: 0; }
+.card-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-size: 15px; font-weight: 600; font-family: 'Google Sans',sans-serif; }
+.card-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* ── Table ── */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); background: #f8fafd; border-bottom: 1px solid var(--border); }
+tbody tr { border-bottom: 1px solid #f0f0f0; transition: background .1s; cursor: pointer; }
+tbody tr:hover { background: #f8fafd; }
+tbody tr:last-child { border-bottom: none; }
+td { padding: 12px 16px; }
+
+/* ── Contributor cell ── */
+.user-cell { display: flex; align-items: center; gap: 10px; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.user-email { font-weight: 500; font-size: 13px; }
+.user-sub { font-size: 11px; color: var(--muted); }
+
+.tasks-badge { display: inline-flex; align-items: center; justify-content: center; background: #e8f0fe; color: var(--blue); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 700; min-width: 32px; }
+.time-text { font-variant-numeric: tabular-nums; font-weight: 500; }
+
+.bar-wrap { height: 5px; background: #e8eaed; border-radius: 3px; width: 70px; overflow: hidden; display: inline-block; margin-left: 8px; vertical-align: middle; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width .4s ease; }
+.bar-blue   .bar-fill { background: var(--blue); }
+.bar-orange .bar-fill { background: var(--orange); }
+.bar-red    .bar-fill { background: var(--red); }
+
+.status-active   { color: var(--green); font-weight: 600; font-size: 11px; }
+.status-parked   { color: var(--orange); font-weight: 600; font-size: 11px; }
+.status-inactive { color: #ccc; font-size: 11px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.active-dot   { background: var(--green); }
+.parked-dot   { background: var(--orange); }
+.inactive-dot { background: #ccc; }
+
+.mini-badge { display: inline-block; font-size: 9px; font-weight: 700; border-radius: 4px; padding: 1px 6px; text-transform: uppercase; }
+.mb-completed { background: #e6f4ea; color: #137333; }
+.mb-parked    { background: #fff3e0; color: var(--orange); }
+.mb-blocked   { background: #fce8e6; color: var(--red); }
+.mb-senior    { background: #fce8e6; color: #c5221f; }
+.mb-review    { background: #e8f0fe; color: var(--blue); }
+
+/* ── Sidebar ── */
+.sidebar { display: flex; flex-direction: column; gap: 0; }
+
+/* ── Leaderboard ── */
+.lb-item { padding: 12px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f0f0f0; }
+.lb-item:last-child { border-bottom: none; }
+.lb-rank { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.lb-rank.gold   { background: #fff3cd; color: #856404; }
+.lb-rank.silver { background: #f0f0f0; color: #666; }
+.lb-rank.bronze { background: #fde8e0; color: #9b4400; }
+.lb-rank.other  { background: #f0f4f9; color: var(--muted); }
+.lb-info { flex: 1; min-width: 0; }
+.lb-name  { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-sub   { font-size: 11px; color: var(--muted); }
+.lb-num   { font-size: 16px; font-weight: 700; color: var(--blue); font-variant-numeric: tabular-nums; }
+
+/* ── Activity feed ── */
+.feed-item { padding: 10px 20px; display: flex; align-items: flex-start; gap: 10px; border-bottom: 1px solid #f0f0f0; }
+.feed-item:last-child { border-bottom: none; }
+.feed-dot  { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.feed-dot.green  { background: var(--green); }
+.feed-dot.orange { background: var(--orange); }
+.feed-text { font-size: 12px; line-height: 1.4; }
+.feed-time { font-size: 11px; color: var(--muted); }
+
+/* ── Drill-down panel ── */
+.drill-panel { display: none; background: #f8fafd; border-top: 1px solid var(--border); }
+.drill-panel.open { display: block; }
+.drill-inner { padding: 16px 20px; }
+.drill-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.drill-close { background: none; border: none; font-size: 16px; cursor: pointer; color: var(--muted); margin-left: auto; }
+.drill-sess { display: flex; flex-direction: column; gap: 4px; max-height: 280px; overflow-y: auto; }
+.drill-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.drill-item-left { flex: 1; min-width: 0; }
+.drill-item-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.drill-item-sub  { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.drill-item-right { text-align: right; flex-shrink: 0; }
+.drill-dur   { font-weight: 700; color: var(--blue); font-variant-numeric: tabular-nums; }
+.drill-time  { font-size: 10px; color: var(--muted); }
+
+/* ── Status breakdown bar ── */
+.status-bar { height: 8px; border-radius: 4px; display: flex; overflow: hidden; margin: 0 16px 12px; }
+.sb-completed { background: var(--green); }
+.sb-parked    { background: var(--yellow); }
+.sb-blocked   { background: var(--red); }
+
+/* ── Empty / Loading ── */
+.empty { padding: 48px 24px; text-align: center; color: var(--muted); }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.empty-sub { font-size: 13px; }
+.loading { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
+
+/* ── Section header in sidebar ── */
+.section-sep { padding: 14px 20px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); border-top: 1px solid var(--border); }
+
+/* ── Active now pill ── */
+.active-now-pill { background: #e6f4ea; color: #137333; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; }
+.parked-pill      { background: #fff3e0; color: var(--orange); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; }
+
+/* ── Responsive ── */
+@media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: repeat(3,1fr); } }
+@media (max-width: 700px)  { .summary-grid { grid-template-columns: repeat(2,1fr); } .page { padding: 16px; } .topbar { padding: 0 16px; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">⏱</div>
+    <h1>Tasky Team Dashboard</h1>
+  </div>
+  <div class="topbar-right">
+    <div class="live-wrap">
+      <div class="live-dot"></div>
+      <span class="live-label" id="lastUpdated">Loading…</span>
+    </div>
+    <button class="btn btn-outline" onclick="loadData()">↻ Refresh</button>
+    <a href="/api/export" class="btn btn-primary">⬇ Export Team CSV</a>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- Filters -->
+  <div class="filters">
+    <span class="filter-label">Show:</span>
+    <button class="filter-btn active" onclick="setFilter('today',     this)">Today</button>
+    <button class="filter-btn"        onclick="setFilter('yesterday', this)">Yesterday</button>
+    <button class="filter-btn"        onclick="setFilter('week',      this)">This Week</button>
+    <button class="filter-btn"        onclick="setFilter('all',       this)">All Time</button>
+    <input type="date" id="customDate" onchange="setFilter('custom', null, this.value)" />
+  </div>
+
+  <!-- Summary cards -->
+  <div class="summary-grid">
+    <div class="summary-card blue">
+      <div class="summary-label">Completed Tasks</div>
+      <div class="summary-value" id="sumCompleted">—</div>
+      <div class="summary-sub" id="sumCompletedSub">across all contributors</div>
+    </div>
+    <div class="summary-card green">
+      <div class="summary-label">Total Time Worked</div>
+      <div class="summary-value" id="sumTime">—</div>
+      <div class="summary-sub">combined work time</div>
+    </div>
+    <div class="summary-card yellow">
+      <div class="summary-label">Active Now</div>
+      <div class="summary-value" id="sumActive">—</div>
+      <div class="summary-sub">currently working</div>
+    </div>
+    <div class="summary-card orange">
+      <div class="summary-label">Parked Tasks</div>
+      <div class="summary-value" id="sumParked">—</div>
+      <div class="summary-sub">on break / paused</div>
+    </div>
+    <div class="summary-card red">
+      <div class="summary-label">Blocked Tasks</div>
+      <div class="summary-value" id="sumBlocked">—</div>
+      <div class="summary-sub">need attention</div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-grid">
+
+    <!-- Left: contributor table + drill-down -->
+    <div>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Contributor Breakdown</div>
+            <div class="card-sub" id="tableSubtitle">Loading…</div>
+          </div>
+        </div>
+        <!-- Status bar legend -->
+        <div style="display:flex;gap:16px;padding:10px 20px 0;font-size:11px;color:var(--muted);flex-wrap:wrap;">
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--green);border-radius:2px;margin-right:4px;vertical-align:middle"></span>Completed</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--yellow);border-radius:2px;margin-right:4px;vertical-align:middle"></span>Parked</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--red);border-radius:2px;margin-right:4px;vertical-align:middle"></span>Blocked</span>
+          <span style="margin-left:auto;font-style:italic">Click a row to see session details</span>
+        </div>
+        <div id="tableBody"><div class="loading">Loading data…</div></div>
+      </div>
+    </div>
+
+    <!-- Right sidebar -->
+    <div class="sidebar">
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">🏆 Leaderboard</div></div>
+        <div id="leaderboard"><div class="loading">Loading…</div></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-header"><div class="card-title">⚡ Currently Active</div></div>
+        <div id="activeNow"><div class="loading">Loading…</div></div>
+        <div id="parkedNow" style="display:none">
+          <div class="section-sep">⏸ On Break (Parked)</div>
+          <div id="parkedNowList"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-header"><div class="card-title">🚫 Blocked Tasks</div></div>
+        <div id="blockedList"><div class="loading">Loading…</div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+let allData      = null;
+let activeFilter = 'today';
+let customDate   = null;
+let openDrillRow = null;
+
+const COLORS = [
+  '#1a73e8','#34a853','#ea4335','#fbbc04','#9c27b0',
+  '#ff5722','#00bcd4','#607d8b','#e91e63','#4caf50'
+];
+
+function getColor(email) {
+  let h = 0;
+  for (const c of email) h = (h * 31 + c.charCodeAt(0)) % COLORS.length;
+  return COLORS[h];
+}
+
+function initials(email) {
+  const name  = email.split('@')[0];
+  const parts = name.split(/[._\-]/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
+function fmtMs(ms) {
+  if (!ms || ms < 0) return '0s';
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const r = s % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${r}s`;
+  return `${r}s`;
+}
+
+function fmtTime(ms) {
+  if (!ms || ms < 0) return '—';
+  const s = Math.floor(ms / 1000);
+  return `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+
+function fmtAgo(iso) {
+  if (!iso) return '';
+  const diff = Math.floor((Date.now() - new Date(iso)) / 60000);
+  if (diff < 1)    return 'just now';
+  if (diff < 60)   return `${diff}m ago`;
+  if (diff < 1440) return `${Math.floor(diff/60)}h ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
+function fmtLocalTime(ts) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+// ── Filter sessions ────────────────────────────────────────────────────────────
+
+function filterSessions(sessions) {
+  if (!sessions) return [];
+  const now   = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return sessions.filter(s => {
+    if (s.isRevisit) return false;
+    if (!s.startTime) return false;
+    const d = new Date(s.startTime);
+    if (activeFilter === 'today')     return d >= today;
+    if (activeFilter === 'yesterday') {
+      const y = new Date(today); y.setDate(y.getDate()-1);
+      return d >= y && d < today;
+    }
+    if (activeFilter === 'week') {
+      const w = new Date(today); w.setDate(w.getDate()-7);
+      return d >= w;
+    }
+    if (activeFilter === 'custom' && customDate) {
+      const cd = new Date(customDate), ce = new Date(cd); ce.setDate(ce.getDate()+1);
+      return d >= cd && d < ce;
+    }
+    return true;
+  });
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────────
+
+function render() {
+  if (!allData) return;
+
+  const contribs = Object.values(allData.contributors || {});
+  const now      = new Date();
+  const ACTIVE_THRESHOLD_MS = 5 * 60 * 1000; // 5 min
+
+  // Build per-contributor stats
+  const rows = contribs.map(c => {
+    const filtered   = filterSessions(c.sessions);
+    const completed  = filtered.filter(s => s.status === 'Completed' || !s.status);
+    const parked     = filtered.filter(s => s.status === 'Parked');
+    const blocked    = filtered.filter(s => s.status === 'Blocked');
+    const totalMs    = filtered.reduce((a, s) => a + (s.durationMs || 0), 0);
+    const isActive   = c.currentTask && (now - new Date(c.lastSeen)) < ACTIVE_THRESHOLD_MS;
+    const hasParked  = (c.parkedTasks || []).length > 0;
+    return { ...c, filtered, completed, parked, blocked, totalMs, isActive, hasParked };
+  }).filter(r => r.filtered.length > 0 || r.isActive || r.hasParked)
+    .sort((a, b) => b.completed.length - a.completed.length);
+
+  const maxCompleted = Math.max(...rows.map(r => r.completed.length), 1);
+  const maxBlocked   = Math.max(...rows.map(r => r.blocked.length),   1);
+
+  // Summary
+  const totalCompleted = rows.reduce((a, r) => a + r.completed.length, 0);
+  const totalParkedSess= rows.reduce((a, r) => a + r.parked.length, 0);
+  const totalBlockedSess=rows.reduce((a, r) => a + r.blocked.length, 0);
+  const totalMs        = rows.reduce((a, r) => a + r.totalMs, 0);
+  const totalActive    = rows.filter(r => r.isActive).length;
+  const totalParkedNow = rows.filter(r => r.hasParked).map(r => (r.parkedTasks||[]).length).reduce((a,b)=>a+b, 0);
+
+  const flabel = { today:'today', yesterday:'yesterday', week:'this week', all:'all time', custom: customDate||'' };
+
+  document.getElementById('sumCompleted').textContent   = totalCompleted;
+  document.getElementById('sumTime').textContent        = fmtMs(totalMs);
+  document.getElementById('sumActive').textContent      = totalActive;
+  document.getElementById('sumParked').textContent      = totalParkedNow;
+  document.getElementById('sumBlocked').textContent     = totalBlockedSess;
+  document.getElementById('sumCompletedSub').textContent= `completed ${flabel[activeFilter]}`;
+  document.getElementById('tableSubtitle').textContent  = `${rows.length} contributors · ${flabel[activeFilter]}`;
+
+  // ── Main table ─────────────────────────────────────────────────────────────
+  const tableDiv = document.getElementById('tableBody');
+  if (rows.length === 0) {
+    tableDiv.innerHTML = `<div class="empty">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">No data for this period</div>
+      <div class="empty-sub">Try a different date range, or have contributors sync from the extension.</div>
+    </div>`;
+  } else {
+    let html = `<table><thead><tr>
+      <th>Contributor</th>
+      <th>✅ Done</th>
+      <th>Time Worked</th>
+      <th>Avg / Task</th>
+      <th>⏸ Parked</th>
+      <th>🚫 Blocked</th>
+      <th>Status</th>
+      <th>Last Seen</th>
+    </tr></thead><tbody>`;
+
+    rows.forEach((r, idx) => {
+      const avg         = r.completed.length > 0 ? Math.floor(r.totalMs / r.completed.length) : 0;
+      const completedPct= Math.round((r.completed.length / maxCompleted) * 100);
+      const blockedPct  = r.blocked.length > 0 ? Math.round((r.blocked.length / maxBlocked) * 100) : 0;
+      const color       = getColor(r.email);
+      const name        = r.email.split('@')[0];
+
+      // Status cell
+      let statusHtml;
+      if (r.isActive) {
+        statusHtml = `<span class="active-now-pill">
+          <span class="status-dot active-dot"></span>Active
+        </span>`;
+      } else if (r.hasParked) {
+        statusHtml = `<span class="parked-pill">
+          <span class="status-dot parked-dot"></span>On Break
+        </span>`;
+      } else {
+        statusHtml = `<span class="status-inactive">
+          <span class="status-dot inactive-dot"></span>Offline
+        </span>`;
+      }
+
+      // Stage breakdown for tooltip
+      const seniorCount = r.completed.filter(s => s.stage === 'Senior Review').length;
+      const reviewCount = r.completed.filter(s => s.stage === 'Review').length;
+      const stageTip    = seniorCount || reviewCount
+        ? `${seniorCount > 0 ? seniorCount+' Senior Review' : ''}${seniorCount && reviewCount ? ', ' : ''}${reviewCount > 0 ? reviewCount+' Review' : ''}`
+        : '';
+
+      html += `<tr data-email="${r.email}" onclick="toggleDrill('${r.email}', ${idx})">
+        <td>
+          <div class="user-cell">
+            <div class="avatar" style="background:${color}">${initials(r.email)}</div>
+            <div>
+              <div class="user-email">${r.email}</div>
+              <div class="user-sub">${name}${stageTip ? ' · ' + stageTip : ''}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="tasks-badge">${r.completed.length}</span>
+          <div class="bar-wrap bar-blue"><div class="bar-fill" style="width:${completedPct}%"></div></div>
+        </td>
+        <td><span class="time-text">${fmtMs(r.totalMs)}</span></td>
+        <td><span class="time-text">${avg > 0 ? fmtMs(avg) : '—'}</span></td>
+        <td>
+          ${r.parked.length > 0 || r.hasParked
+            ? `<span class="mini-badge mb-parked">${(r.parkedTasks||[]).length > 0 ? (r.parkedTasks||[]).length + ' now' : r.parked.length}</span>`
+            : '<span style="color:#ccc;font-size:12px">—</span>'}
+        </td>
+        <td>
+          ${r.blocked.length > 0
+            ? `<span class="mini-badge mb-blocked">${r.blocked.length}
+              </span><div class="bar-wrap bar-red" style="margin-left:4px"><div class="bar-fill" style="width:${blockedPct}%"></div></div>`
+            : '<span style="color:#ccc;font-size:12px">—</span>'}
+        </td>
+        <td>${statusHtml}</td>
+        <td><span style="font-size:12px;color:var(--muted)">${fmtAgo(r.lastSeen)}</span></td>
+      </tr>
+      <tr id="drill-${r.email.replace(/[@.]/g,'-')}" style="display:none">
+        <td colspan="8" style="padding:0">
+          <div class="drill-panel" id="drillpanel-${r.email.replace(/[@.]/g,'-')}">
+            <div class="drill-inner">
+              <div class="drill-title">
+                <div class="avatar" style="background:${color};width:24px;height:24px;font-size:10px">${initials(r.email)}</div>
+                ${name}'s sessions
+                <button class="drill-close" onclick="closeDrill('${r.email}');event.stopPropagation()">✕</button>
+              </div>
+              <div class="drill-sess" id="drillsess-${r.email.replace(/[@.]/g,'-')}"></div>
+            </div>
+          </div>
+        </td>
+      </tr>`;
+    });
+
+    html += '</tbody></table>';
+    tableDiv.innerHTML = html;
+  }
+
+  // ── Leaderboard ────────────────────────────────────────────────────────────
+  const lbDiv = document.getElementById('leaderboard');
+  const top5  = rows.slice(0, 5);
+  if (top5.length === 0) {
+    lbDiv.innerHTML = '<div class="empty" style="padding:24px"><div class="empty-sub">No data yet</div></div>';
+  } else {
+    const medals   = ['🥇','🥈','🥉','4','5'];
+    const rankClass= ['gold','silver','bronze','other','other'];
+    lbDiv.innerHTML = top5.map((r, i) => `
+      <div class="lb-item">
+        <div class="lb-rank ${rankClass[i]}">${medals[i]}</div>
+        <div class="lb-info">
+          <div class="lb-name">${r.email.split('@')[0]}</div>
+          <div class="lb-sub">${r.completed.length} done · ${fmtMs(r.totalMs)}
+            ${r.blocked.length > 0 ? ` · <span style="color:var(--red)">${r.blocked.length} blocked</span>` : ''}
+          </div>
+        </div>
+        <div class="lb-num">${r.completed.length}</div>
+      </div>
+    `).join('');
+  }
+
+  // ── Currently active feed ──────────────────────────────────────────────────
+  const activeDiv  = document.getElementById('activeNow');
+  const activePpl  = rows.filter(r => r.isActive);
+  if (activePpl.length === 0) {
+    activeDiv.innerHTML = '<div class="empty" style="padding:20px"><div class="empty-sub">No one active right now</div></div>';
+  } else {
+    activeDiv.innerHTML = activePpl.map(r => `
+      <div class="feed-item">
+        <div class="feed-dot green"></div>
+        <div>
+          <div class="feed-text"><strong>${r.email.split('@')[0]}</strong> is working</div>
+          <div class="feed-text" style="color:var(--muted);font-size:11px">${r.currentTask?.taskName || r.currentTask?.taskId || 'Unknown task'}</div>
+          ${r.currentTask?.stage && r.currentTask.stage !== 'Unknown' ? `<div class="feed-time" style="margin-top:2px"><span class="mini-badge mb-${r.currentTask.stage === 'Senior Review' ? 'senior':'review'}">${r.currentTask.stage}</span></div>` : ''}
+          <div class="feed-time">${fmtAgo(r.lastSeen)}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── Parked now feed ────────────────────────────────────────────────────────
+  const parkedNowDiv  = document.getElementById('parkedNow');
+  const parkedNowList = document.getElementById('parkedNowList');
+  const parkedPpl     = rows.filter(r => r.hasParked);
+  if (parkedPpl.length === 0) {
+    parkedNowDiv.style.display = 'none';
+  } else {
+    parkedNowDiv.style.display = 'block';
+    let phtml = '';
+    parkedPpl.forEach(r => {
+      (r.parkedTasks || []).forEach(p => {
+        phtml += `<div class="feed-item">
+          <div class="feed-dot orange"></div>
+          <div>
+            <div class="feed-text"><strong>${r.email.split('@')[0]}</strong> on break</div>
+            <div class="feed-text" style="color:var(--muted);font-size:11px">${p.taskName || p.taskId || 'Unknown task'}</div>
+            <div class="feed-time">⏱ ${fmtMs(p.accumulatedMs||0)} spent · parked ${fmtAgo(new Date(p.parkedAt||0).toISOString())}</div>
+          </div>
+        </div>`;
+      });
+    });
+    parkedNowList.innerHTML = phtml;
+  }
+
+  // ── Blocked tasks feed ─────────────────────────────────────────────────────
+  const blockedListDiv = document.getElementById('blockedList');
+  const allBlocked     = [];
+  rows.forEach(r => {
+    r.blocked.forEach(s => allBlocked.push({ ...s, _email: r.email }));
+  });
+  allBlocked.sort((a, b) => b.startTime - a.startTime);
+
+  if (allBlocked.length === 0) {
+    blockedListDiv.innerHTML = '<div class="empty" style="padding:20px"><div class="empty-sub" style="color:var(--green)">✅ No blocked tasks!</div></div>';
+  } else {
+    blockedListDiv.innerHTML = allBlocked.slice(0, 8).map(s => `
+      <div class="feed-item">
+        <div class="feed-dot" style="background:var(--red)"></div>
+        <div>
+          <div class="feed-text"><strong>${s._email.split('@')[0]}</strong></div>
+          <div class="feed-text" style="color:var(--muted);font-size:11px">${s.taskName || s.taskId}</div>
+          <div class="feed-time">${fmtMs(s.durationMs)} spent · ${s.dateStr || ''}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('lastUpdated').textContent = 'Updated just now';
+}
+
+// ── Drill-down ─────────────────────────────────────────────────────────────────
+
+function toggleDrill(email, idx) {
+  const safeEmail = email.replace(/[@.]/g, '-');
+  const drillRow  = document.getElementById(`drill-${safeEmail}`);
+  const panel     = document.getElementById(`drillpanel-${safeEmail}`);
+  if (!drillRow) return;
+
+  // If same row clicked, close it
+  if (openDrillRow === email) {
+    closeDrill(email);
+    return;
+  }
+
+  // Close any open drill
+  if (openDrillRow) closeDrill(openDrillRow);
+
+  // Open this one
+  openDrillRow = email;
+  drillRow.style.display = 'table-row';
+  panel.classList.add('open');
+
+  // Populate sessions
+  const contrib = allData.contributors[email];
+  if (!contrib) return;
+  const sessions = filterSessions(contrib.sessions);
+  sessions.sort((a, b) => b.startTime - a.startTime);
+
+  const sessDiv = document.getElementById(`drillsess-${safeEmail}`);
+  if (sessions.length === 0) {
+    sessDiv.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px;font-size:12px">No sessions in this period</div>';
+    return;
+  }
+
+  const statusLabel = { Completed: '✅', Parked: '⏸', Blocked: '🚫' };
+  const statusMini  = { Completed: 'mb-completed', Parked: 'mb-parked', Blocked: 'mb-blocked' };
+  const stageMini   = { 'Senior Review': 'mb-senior', 'Review': 'mb-review' };
+
+  sessDiv.innerHTML = sessions.map(s => {
+    const st  = s.status || 'Completed';
+    const sub = [
+      s.stage && s.stage !== 'Unknown' ? s.stage : null,
+      s.jobName || null
+    ].filter(Boolean).join(' · ');
+    return `
+      <div class="drill-item">
+        <div class="drill-item-left">
+          <div class="drill-item-name" title="${s.taskName||''}">${s.taskName || s.taskId}</div>
+          <div class="drill-item-sub">${sub || '&nbsp;'}
+            <span class="mini-badge ${statusMini[st]}" style="margin-left:4px">${statusLabel[st]||''} ${st}</span>
+            ${s.stage && stageMini[s.stage] ? `<span class="mini-badge ${stageMini[s.stage]}" style="margin-left:4px">${s.stage}</span>` : ''}
+          </div>
+        </div>
+        <div class="drill-item-right">
+          <div class="drill-dur">${fmtTime(s.durationMs)}</div>
+          <div class="drill-time">${fmtLocalTime(s.startTime)} – ${s.endTime ? fmtLocalTime(s.endTime) : '…'}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function closeDrill(email) {
+  const safeEmail = email.replace(/[@.]/g, '-');
+  const drillRow  = document.getElementById(`drill-${safeEmail}`);
+  const panel     = document.getElementById(`drillpanel-${safeEmail}`);
+  if (drillRow) drillRow.style.display = 'none';
+  if (panel)    panel.classList.remove('open');
+  if (openDrillRow === email) openDrillRow = null;
+}
+
+// ── Load ───────────────────────────────────────────────────────────────────────
+
+async function loadData() {
+  try {
+    const resp = await fetch('/api/data');
+    allData    = await resp.json();
+    render();
+  } catch(e) {
+    document.getElementById('tableBody').innerHTML =
+      `<div class="empty"><div class="empty-icon">⚠️</div>
+       <div class="empty-title">Could not load data</div>
+       <div class="empty-sub">Make sure the server is running: <code>node server.js</code></div></div>`;
+  }
+}
+
+function setFilter(f, btn, date) {
+  activeFilter = f;
+  customDate   = date || null;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  openDrillRow = null;
+  render();
+}
+
+loadData();
+setInterval(loadData, 30000);
+</script>
+</body>
+</html>
