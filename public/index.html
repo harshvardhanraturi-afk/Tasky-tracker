@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tasky Team Dashboard</title>
+<style>
+:root{--blue:#1a73e8;--green:#34a853;--red:#ea4335;--orange:#f9ab00;--bg:#f0f4f9;--card:#fff;--border:#e0e0e0;--text:#1f1f1f;--muted:#5f6368;--radius:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* TOP BAR */
+.topbar{background:#1a73e8;color:#fff;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.logo{width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.topbar h1{font-size:18px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.topbar-sub{font-size:11px;opacity:.8}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:6px;border:none;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s;text-decoration:none}
+.btn-white{background:#fff;color:#1a73e8}.btn-white:hover{background:#e8f0fe}
+.btn-green{background:#34a853;color:#fff}.btn-green:hover{background:#2d9247}
+
+/* PAGE */
+.page{padding:20px 24px;max-width:1300px;margin:0 auto}
+
+/* FILTERS */
+.filters{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.filters span{font-size:12px;font-weight:700;color:var(--muted)}
+.fb{padding:6px 14px;border-radius:20px;border:2px solid var(--border);background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s}
+.fb.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+input[type=date]{padding:6px 10px;border:2px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;outline:none}
+input[type=date]:focus{border-color:var(--blue)}
+
+/* SUMMARY CARDS */
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.sc{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:16px 18px}
+.sc-label{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:6px;letter-spacing:.5px}
+.sc-val{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+.sc-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.c-blue .sc-val{color:var(--blue)}.c-green .sc-val{color:var(--green)}
+.c-orange .sc-val{color:#b06000}.c-red .sc-val{color:var(--red)}.c-purple .sc-val{color:#7b1fa2}
+
+/* MAIN LAYOUT */
+.layout{display:grid;grid-template-columns:1fr 290px;gap:16px}
+
+/* TABLE CARD */
+.tcard{background:#fff;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden}
+.thead{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ttitle{font-size:15px;font-weight:700}
+.tsub{font-size:11px;color:var(--muted);margin-top:2px}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{padding:9px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);background:#f8fafd;border-bottom:1px solid var(--border);letter-spacing:.4px;white-space:nowrap}
+tbody tr.main-row{border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .1s}
+tbody tr.main-row:hover{background:#f8fafd}
+td{padding:11px 14px;vertical-align:middle}
+
+.urow{display:flex;align-items:center;gap:9px}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.uemail{font-weight:600;font-size:13px}
+.usub{font-size:10px;color:var(--muted);margin-top:1px}
+
+.badge{background:#e8f0fe;color:var(--blue);border-radius:20px;padding:3px 9px;font-size:12px;font-weight:700;display:inline-block}
+.bar-bg{height:4px;background:#e8eaed;border-radius:2px;width:50px;display:inline-block;margin-left:6px;vertical-align:middle;overflow:hidden}
+.bar-fg{height:100%;background:var(--blue);border-radius:2px}
+.tval{font-weight:600;font-size:13px}
+
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700}
+.pill-green{background:#e6f4ea;color:#137333}
+.pill-orange{background:#fff3e0;color:#e65100}
+.pill-gray{color:#9aa0a6;font-size:11px}
+
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.dot-green{background:#34a853;animation:pulse 2s infinite}
+.dot-orange{background:#f9ab00}
+.dot-gray{background:#dadce0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* DRILL ROW */
+tr.drill-row{display:none}
+tr.drill-row.open{display:table-row}
+.drill-panel{background:#f8fafd;border-top:1px solid var(--border);padding:0}
+.drill-inner{padding:14px 18px}
+.drill-title{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.drill-close{background:none;border:none;font-size:16px;cursor:pointer;color:var(--muted);margin-left:auto}
+.drill-list{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto}
+.drill-item{background:#fff;border:1px solid var(--border);border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.drill-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drill-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.drill-right{text-align:right;flex-shrink:0}
+.drill-dur{font-size:12px;font-weight:700;color:var(--blue);font-variant-numeric:tabular-nums}
+.drill-time{font-size:10px;color:var(--muted);margin-top:1px}
+
+.sbadge{font-size:9px;font-weight:700;border-radius:3px;padding:1px 5px;text-transform:uppercase}
+.sb-completed{background:#e6f4ea;color:#137333}
+.sb-parked{background:#fff3e0;color:#e65100}
+.sb-blocked{background:#fce8e6;color:#c5221f}
+.sb-senior{background:#fce8e6;color:#c5221f}
+.sb-review{background:#e8f0fe;color:#1a73e8}
+
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:14px}
+.lb-item{padding:11px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f5f5f5}
+.lb-item:last-child{border-bottom:none}
+.medal{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.gold{background:#fff3cd;color:#856404}.silver{background:#f0f0f0;color:#555}
+.bronze{background:#fde8e0;color:#9b4400}.other{background:#f0f4f9;color:var(--muted)}
+.lb-info{flex:1;min-width:0}
+.lb-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-sub{font-size:11px;color:var(--muted)}
+.lb-num{font-size:18px;font-weight:700;color:var(--blue)}
+
+.feed-item{padding:10px 16px;display:flex;align-items:flex-start;gap:8px;border-bottom:1px solid #f5f5f5}
+.feed-item:last-child{border-bottom:none}
+.feed-text{font-size:12px;line-height:1.4}
+.feed-time{font-size:10px;color:var(--muted);margin-top:2px}
+
+.empty{padding:32px 20px;text-align:center;color:var(--muted);font-size:13px}
+
+/* LOADING */
+.loading-bar{height:3px;background:var(--blue);width:0%;transition:width .3s;position:fixed;top:0;left:0;z-index:999}
+
+@media(max-width:1000px){.layout{grid-template-columns:1fr}.cards{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.cards{grid-template-columns:1fr 1fr}.page{padding:12px}}
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loadBar"></div>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">⏱</div>
+    <div>
+      <h1>Tasky Team Dashboard</h1>
+      <div class="topbar-sub" id="topSub">Loading…</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span id="lastUpdated" style="font-size:11px;opacity:.8"></span>
+    <button class="btn btn-white" onclick="loadData()">↻ Refresh</button>
+    <button class="btn btn-green" onclick="exportTeamCSV()">⬇ Export CSV</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="filters">
+    <span>Show:</span>
+    <button class="fb active" onclick="setFilter('today',this)">Today</button>
+    <button class="fb" onclick="setFilter('yesterday',this)">Yesterday</button>
+    <button class="fb" onclick="setFilter('week',this)">This Week</button>
+    <button class="fb" onclick="setFilter('all',this)">All Time</button>
+    <input type="date" id="dateIn" onchange="setFilter('custom',null,this.value)"/>
+  </div>
+
+  <div class="cards">
+    <div class="sc c-blue"><div class="sc-label">Completed Tasks</div><div class="sc-val" id="sTasks">—</div><div class="sc-sub" id="sTasksSub">today</div></div>
+    <div class="sc c-green"><div class="sc-label">Total Time Worked</div><div class="sc-val" id="sTime">—</div><div class="sc-sub">combined</div></div>
+    <div class="sc c-orange"><div class="sc-label">Active Now</div><div class="sc-val" id="sActive">—</div><div class="sc-sub">currently working</div></div>
+    <div class="sc c-purple"><div class="sc-label">Parked Tasks</div><div class="sc-val" id="sParked">—</div><div class="sc-sub">on break / paused</div></div>
+    <div class="sc c-red"><div class="sc-label">Blocked Tasks</div><div class="sc-val" id="sBlocked">—</div><div class="sc-sub">need attention</div></div>
+  </div>
+
+  <div class="layout">
+    <div class="tcard">
+      <div class="thead">
+        <div><div class="ttitle">Contributor Breakdown</div><div class="tsub" id="tableSub"></div></div>
+      </div>
+      <div id="tableWrap"><div class="empty">Loading data…</div></div>
+    </div>
+
+    <div class="sidebar">
+      <div class="tcard">
+        <div class="thead"><div class="ttitle">🏆 Leaderboard</div></div>
+        <div id="lbWrap"></div>
+      </div>
+      <div class="tcard">
+        <div class="thead"><div class="ttitle">⚡ Currently Active</div></div>
+        <div id="activeWrap"></div>
+      </div>
+      <div class="tcard" id="blockedCard">
+        <div class="thead"><div class="ttitle">🚫 Blocked Tasks</div></div>
+        <div id="blockedWrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+var allData      = null;
+var activeFilter = 'today';
+var customDate   = null;
+var openDrill    = null;
+
+var COLORS = ['#1a73e8','#34a853','#ea4335','#f9ab00','#9c27b0',
+              '#ff5722','#00acc1','#795548','#e91e63','#607d8b'];
+
+function col(email) {
+  var h = 0;
+  for (var i = 0; i < email.length; i++) h = (h*31 + email.charCodeAt(i)) % COLORS.length;
+  return COLORS[h];
+}
+function ini(email) {
+  var n = email.split('@')[0].split(/[._\-]/);
+  return n.length >= 2 ? (n[0][0]+n[1][0]).toUpperCase() : email.slice(0,2).toUpperCase();
+}
+
+// ── Formatters ────────────────────────────────────────────────────────────────
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function dur(ms) {
+  if (!ms||ms<0) return '0s';
+  var s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),r=s%60;
+  if (h>0) return h+'h '+m+'m'; if (m>0) return m+'m '+r+'s'; return r+'s';
+}
+
+function durHMS(ms) {
+  if (!ms||ms<0) return '00:00:00';
+  var s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),r=s%60;
+  return pad(h)+':'+pad(m)+':'+pad(r);
+}
+
+// Uses browser local timezone automatically
+function localTime(ts) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+
+function localTimeFull(ts) {
+  if (!ts) return '';
+  var d=new Date(ts), h=d.getHours(), m=d.getMinutes(), s=d.getSeconds();
+  var ap=h>=12?'PM':'AM'; h=h%12||12;
+  return pad(h)+':'+pad(m)+':'+pad(s)+' '+ap;
+}
+
+function localDate(ts) {
+  if (!ts) return '';
+  var d=new Date(ts);
+  return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear();
+}
+
+function localDay(ts) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleDateString('en-US',{weekday:'long'});
+}
+
+function ago(iso) {
+  if (!iso) return '';
+  var diff = Math.floor((Date.now()-new Date(iso))/60000);
+  if (diff<1) return 'just now';
+  if (diff<60) return diff+'m ago';
+  if (diff<1440) return Math.floor(diff/60)+'h ago';
+  return new Date(iso).toLocaleDateString();
+}
+
+// ── Filter ────────────────────────────────────────────────────────────────────
+function filterSess(sessions) {
+  if (!sessions) return [];
+  var now=new Date(), today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  return sessions.filter(function(s) {
+    if (s.isRevisit) return false;
+    if (!s.startTime) return false;
+    var d=new Date(s.startTime);
+    if (activeFilter==='today')     return d>=today;
+    if (activeFilter==='yesterday') { var y=new Date(today); y.setDate(y.getDate()-1); return d>=y&&d<today; }
+    if (activeFilter==='week')      { var w=new Date(today); w.setDate(w.getDate()-7); return d>=w; }
+    if (activeFilter==='custom'&&customDate) { var cd=new Date(customDate),ce=new Date(cd); ce.setDate(ce.getDate()+1); return d>=cd&&d<ce; }
+    return true;
+  });
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render() {
+  if (!allData) return;
+
+  var contribs = Object.values(allData.contributors||{});
+  var now      = new Date();
+  var ACTIVE_MS = 5*60*1000;
+
+  // Build rows
+  var rows = contribs.map(function(c) {
+    var f       = filterSess(c.sessions||[]);
+    var done    = f.filter(function(s){return s.status==='Completed'||!s.status;});
+    var parked  = f.filter(function(s){return s.status==='Parked';});
+    var blocked = f.filter(function(s){return s.status==='Blocked';});
+    var ms      = f.reduce(function(a,s){return a+(s.durationMs||0);},0);
+    var active  = c.currentTask && (now-new Date(c.lastSeen||0))<ACTIVE_MS;
+    var hasP    = (c.parkedTasks||[]).length>0;
+    return {email:c.email,sessions:c.sessions||[],f:f,done:done,parked:parked,blocked:blocked,ms:ms,active:active,hasP:hasP,c:c};
+  }).filter(function(r){return r.f.length>0||r.active||r.hasP;})
+    .sort(function(a,b){return b.done.length-a.done.length;});
+
+  var maxDone = Math.max.apply(null,rows.map(function(r){return r.done.length;})||[1]);
+
+  var totDone    = rows.reduce(function(a,r){return a+r.done.length;},0);
+  var totMs      = rows.reduce(function(a,r){return a+r.ms;},0);
+  var totActive  = rows.filter(function(r){return r.active;}).length;
+  var totParked  = rows.reduce(function(a,r){return a+(r.c.parkedTasks||[]).length;},0);
+  var totBlocked = rows.reduce(function(a,r){return a+r.blocked.length;},0);
+
+  var fl={today:'today',yesterday:'yesterday',week:'this week',all:'all time',custom:customDate||''}[activeFilter];
+
+  document.getElementById('sTasks').textContent   = totDone;
+  document.getElementById('sTasksSub').textContent= fl;
+  document.getElementById('sTime').textContent    = dur(totMs);
+  document.getElementById('sActive').textContent  = totActive;
+  document.getElementById('sParked').textContent  = totParked;
+  document.getElementById('sBlocked').textContent = totBlocked;
+  document.getElementById('tableSub').textContent = rows.length+' contributors · '+fl;
+  document.getElementById('topSub').textContent   = contribs.length+' contributors loaded';
+
+  // TABLE
+  var tw = document.getElementById('tableWrap');
+  if (rows.length===0) {
+    tw.innerHTML='<div class="empty">No data for this period. Try "All Time" or have contributors sync.</div>';
+  } else {
+    var h='<table><thead><tr><th>Contributor</th><th>✅ Done</th><th>Time Worked</th><th>Avg/Task</th><th>⏸ Parked</th><th>🚫 Blocked</th><th>Status</th><th>Last Seen</th></tr></thead><tbody>';
+    rows.forEach(function(r,i) {
+      var avg  = r.done.length>0?Math.floor(r.ms/r.done.length):0;
+      var pct  = Math.round((r.done.length/maxDone)*100);
+      var c    = col(r.email);
+      var name = r.email.split('@')[0];
+      var safe = r.email.replace(/[@.]/g,'-');
+
+      var status = r.active
+        ? '<span class="pill pill-green"><span class="dot dot-green"></span>Active</span>'
+        : r.hasP
+          ? '<span class="pill pill-orange"><span class="dot dot-orange"></span>On Break</span>'
+          : '<span class="pill-gray"><span class="dot dot-gray"></span> Offline</span>';
+
+      var seniorN = r.done.filter(function(s){return s.stage==='Senior Review';}).length;
+      var reviewN = r.done.filter(function(s){return s.stage==='Review';}).length;
+      var stageSub= [seniorN>0?seniorN+' Senior':'',reviewN>0?reviewN+' Review':''].filter(Boolean).join(', ');
+
+      h+='<tr class="main-row" onclick="toggleDrill(\''+r.email+'\','+i+')">'
+        +'<td><div class="urow"><div class="avatar" style="background:'+c+'">'+ini(r.email)+'</div>'
+        +'<div><div class="uemail">'+r.email+'</div><div class="usub">'+name+(stageSub?' · '+stageSub:'')+'</div></div></div></td>'
+        +'<td><span class="badge">'+r.done.length+'</span><div class="bar-bg"><div class="bar-fg" style="width:'+pct+'%"></div></div></td>'
+        +'<td><span class="tval">'+dur(r.ms)+'</span></td>'
+        +'<td><span class="tval">'+(avg>0?dur(avg):'—')+'</span></td>'
+        +'<td>'+(r.parked.length>0||r.hasP?'<span class="sbadge sb-parked">'+((r.c.parkedTasks||[]).length>0?(r.c.parkedTasks||[]).length+' now':r.parked.length)+'</span>':'<span style="color:#ccc">—</span>')+'</td>'
+        +'<td>'+(r.blocked.length>0?'<span class="sbadge sb-blocked">'+r.blocked.length+'</span>':'<span style="color:#ccc">—</span>')+'</td>'
+        +'<td>'+status+'</td>'
+        +'<td style="font-size:11px;color:var(--muted)">'+ago(r.c.lastSeen)+'</td>'
+        +'</tr>'
+        +'<tr class="drill-row" id="dr-'+safe+'">'
+        +'<td colspan="8" style="padding:0"><div class="drill-panel"><div class="drill-inner">'
+        +'<div class="drill-title"><div class="avatar" style="background:'+c+';width:22px;height:22px;font-size:10px">'+ini(r.email)+'</div>'
+        +name+'\'s sessions <button class="drill-close" onclick="closeDrill(\''+r.email+'\');event.stopPropagation()">✕</button></div>'
+        +'<div class="drill-list" id="dl-'+safe+'"><div class="empty" style="padding:12px">Loading…</div></div>'
+        +'</div></div></td></tr>';
+    });
+    h+='</tbody></table>';
+    tw.innerHTML=h;
+  }
+
+  // LEADERBOARD
+  var top5 = rows.slice(0,5);
+  var medals=['🥇','🥈','🥉','4','5'];
+  var rnk=['gold','silver','bronze','other','other'];
+  document.getElementById('lbWrap').innerHTML = top5.length===0
+    ? '<div class="empty">No data yet</div>'
+    : top5.map(function(r,i){
+        return '<div class="lb-item"><div class="medal '+rnk[i]+'">'+medals[i]+'</div>'
+          +'<div class="lb-info"><div class="lb-name">'+r.email.split('@')[0]+'</div>'
+          +'<div class="lb-sub">'+r.done.length+' done · '+dur(r.ms)+'</div></div>'
+          +'<div class="lb-num">'+r.done.length+'</div></div>';
+      }).join('');
+
+  // ACTIVE NOW
+  var actives = rows.filter(function(r){return r.active;});
+  document.getElementById('activeWrap').innerHTML = actives.length===0
+    ? '<div class="empty">No one active right now</div>'
+    : actives.map(function(r){
+        var task = r.c.currentTask;
+        return '<div class="feed-item"><div class="dot dot-green" style="flex-shrink:0;margin-top:4px"></div>'
+          +'<div><div class="feed-text"><strong>'+r.email.split('@')[0]+'</strong> is working</div>'
+          +(task?'<div class="feed-text" style="color:var(--muted);font-size:11px">'+(task.taskName||task.taskId||'')+'</div>':'')
+          +(task&&task.stage&&task.stage!=='Unknown'?'<div class="feed-time"><span class="sbadge '+(task.stage==='Senior Review'?'sb-senior':'sb-review')+'">'+task.stage+'</span></div>':'')
+          +'<div class="feed-time">'+ago(r.c.lastSeen)+'</div></div></div>';
+      }).join('');
+
+  // BLOCKED
+  var allBlocked=[];
+  rows.forEach(function(r){r.blocked.forEach(function(s){allBlocked.push(Object.assign({},s,{_email:r.email}));});});
+  allBlocked.sort(function(a,b){return (b.startTime||0)-(a.startTime||0);});
+  document.getElementById('blockedWrap').innerHTML = allBlocked.length===0
+    ? '<div class="empty" style="color:var(--green)">✅ No blocked tasks!</div>'
+    : allBlocked.slice(0,8).map(function(s){
+        return '<div class="feed-item"><div class="dot" style="background:var(--red);flex-shrink:0;margin-top:4px"></div>'
+          +'<div><div class="feed-text"><strong>'+s._email.split('@')[0]+'</strong></div>'
+          +'<div class="feed-text" style="color:var(--muted);font-size:11px">'+(s.taskName||s.taskId||'')+'</div>'
+          +'<div class="feed-time">'+durHMS(s.durationMs)+' spent</div></div></div>';
+      }).join('');
+
+  document.getElementById('lastUpdated').textContent = '● Updated just now';
+}
+
+// ── Drill-down ────────────────────────────────────────────────────────────────
+function toggleDrill(email, idx) {
+  var safe = email.replace(/[@.]/g,'-');
+  var row  = document.getElementById('dr-'+safe);
+  if (!row) return;
+
+  if (openDrill===email) { closeDrill(email); return; }
+  if (openDrill) closeDrill(openDrill);
+
+  openDrill = email;
+  row.classList.add('open');
+  populateDrill(email, safe);
+}
+
+function populateDrill(email, safe) {
+  var c = allData&&allData.contributors&&allData.contributors[email];
+  if (!c) return;
+  var sessions = filterSess(c.sessions||[]);
+  sessions.sort(function(a,b){return (b.startTime||0)-(a.startTime||0);});
+  var dl = document.getElementById('dl-'+safe);
+  if (!dl) return;
+
+  if (sessions.length===0) {
+    dl.innerHTML='<div class="empty" style="padding:12px">No sessions in this period</div>';
+    return;
+  }
+
+  dl.innerHTML = sessions.map(function(s) {
+    var st    = s.status||'Completed';
+    var stCls = st==='Parked'?'sb-parked':st==='Blocked'?'sb-blocked':'sb-completed';
+    var sub   = [s.stage&&s.stage!=='Unknown'?s.stage:null, s.jobName||null].filter(Boolean).join(' · ');
+    // End time = start + duration (always correct)
+    var endTs = s.startTime ? s.startTime+(s.durationMs||0) : 0;
+    return '<div class="drill-item">'
+      +'<div style="flex:1;min-width:0">'
+      +'<div class="drill-name">'+escape_html(s.taskName||s.taskId||'')+'</div>'
+      +'<div class="drill-sub">'+(sub||'')+(sub?' · ':'')+'<span class="sbadge '+stCls+'">'+st+'</span>'
+      +(s.stage&&s.stage!=='Unknown'?'<span class="sbadge '+(s.stage==='Senior Review'?'sb-senior':'sb-review')+'" style="margin-left:3px">'+s.stage+'</span>':'')
+      +'</div></div>'
+      +'<div class="drill-right">'
+      +'<div class="drill-dur">'+durHMS(s.durationMs)+'</div>'
+      +'<div class="drill-time">'+localTime(s.startTime)+' – '+localTime(endTs)+'</div>'
+      +'</div></div>';
+  }).join('');
+}
+
+function closeDrill(email) {
+  var safe = email.replace(/[@.]/g,'-');
+  var row  = document.getElementById('dr-'+safe);
+  if (row) row.classList.remove('open');
+  if (openDrill===email) openDrill=null;
+}
+
+function escape_html(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── EXPORT CSV — runs in browser so timezone is automatically correct ──────────
+function exportTeamCSV() {
+  if (!allData) { alert('No data loaded yet. Click Refresh first.'); return; }
+
+  var rows = [['Email','Task Name','Job Name','Stage','Status','Date','Day','Start Time','End Time','Duration','Task Link']];
+  var contribs = Object.values(allData.contributors||{});
+
+  contribs.forEach(function(c) {
+    (c.sessions||[]).forEach(function(s) {
+      if (s.isRevisit) return;
+      var startTs = s.startTime||0;
+      // Always calculate end = start + duration — never trust stored endTime
+      var endTs   = startTs ? startTs+(s.durationMs||0) : (s.endTime||0);
+      rows.push([
+        c.email,
+        '"'+(s.taskName||'').replace(/"/g,'""')+'"',
+        '"'+(s.jobName||'').replace(/"/g,'""')+'"',
+        s.stage||'',
+        s.status||'Completed',
+        localDate(startTs),
+        localDay(startTs),
+        localTimeFull(startTs),
+        localTimeFull(endTs),
+        durHMS(s.durationMs||0),
+        s.url||''
+      ]);
+    });
+  });
+
+  var csv  = rows.map(function(r){return r.join(',');}).join('\n');
+  var blob = new Blob([csv],{type:'text/csv;charset=utf-8'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href   = url;
+  a.download = 'tasky-team-'+new Date().toISOString().split('T')[0]+'.csv';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+}
+
+// ── Load data ─────────────────────────────────────────────────────────────────
+async function loadData() {
+  var bar = document.getElementById('loadBar');
+  bar.style.width='30%';
+  try {
+    var resp = await fetch('/api/data');
+    bar.style.width='70%';
+    allData = await resp.json();
+    bar.style.width='100%';
+    render();
+    setTimeout(function(){bar.style.width='0%';},400);
+  } catch(e) {
+    bar.style.width='0%';
+    document.getElementById('tableWrap').innerHTML=
+      '<div class="empty"><b>⚠️ Could not load data</b><br>Make sure the server is running.</div>';
+  }
+}
+
+function setFilter(f,btn,date) {
+  activeFilter=f; customDate=date||null;
+  document.querySelectorAll('.fb').forEach(function(b){b.classList.remove('active');});
+  if (btn) btn.classList.add('active');
+  openDrill=null;
+  render();
+}
+
+loadData();
+setInterval(loadData, 60000);
+</script>
+</body>
+</html>
