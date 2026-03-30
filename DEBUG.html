@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tasky — Debug Tool</title>
+<style>
+:root{--blue:#1a73e8;--green:#34a853;--red:#ea4335;--border:#e0e0e0;--muted:#5f6368}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f4f9;color:#1f1f1f;padding:24px}
+.wrap{max-width:800px;margin:0 auto}
+h1{font-size:20px;font-weight:800;color:var(--blue);margin-bottom:4px}
+.sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:14px;font-weight:700;margin-bottom:12px}
+label{font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase}
+input,textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;outline:none;margin-bottom:12px}
+input:focus,textarea:focus{border-color:var(--blue)}
+textarea{height:180px;resize:vertical;font-family:monospace;font-size:12px}
+.btn{padding:10px 20px;border-radius:6px;border:none;font-size:13px;font-weight:700;cursor:pointer}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#1557b0}
+.btn-gray{background:#f0f4f9;color:var(--muted)}.btn-gray:hover{background:#e0e0e0}
+.row{display:flex;gap:8px;margin-bottom:0}
+.result{margin-top:16px;background:#f8fafd;border:1px solid var(--border);border-radius:8px;padding:14px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;min-height:60px}
+.ok{color:var(--green)}.err{color:var(--red)}.warn{color:#e65100}
+.pill{display:inline-block;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;margin-left:6px}
+.pill-ok{background:#e6f4ea;color:#137333}
+.pill-err{background:#fce8e6;color:#c5221f}
+.pill-warn{background:#fff3e0;color:#e65100}
+.check-row{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin-bottom:8px;padding:8px 12px;border-radius:6px;background:#f8fafd}
+.check-icon{font-size:16px;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔍 Tasky Debug Tool</h1>
+  <div class="sub">Use this to test your Google Apps Script URL and diagnose why data isn't flowing.</div>
+
+  <!-- STEP 1: URL CHECK -->
+  <div class="card">
+    <h2>Step 1 — Verify your Web App URL</h2>
+    <label>Your Google Apps Script Web App URL</label>
+    <input type="url" id="urlInput" placeholder="https://script.google.com/macros/s/XXXXXX/exec"/>
+    <div class="row">
+      <button class="btn btn-blue" onclick="testGet()">🔍 Test URL (GET)</button>
+      <button class="btn btn-gray" onclick="clearResult('getResult')">Clear</button>
+    </div>
+    <div class="result" id="getResult">Result will appear here…</div>
+  </div>
+
+  <!-- STEP 2: TEST POST -->
+  <div class="card">
+    <h2>Step 2 — Send a test session (POST)</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">This sends a fake completed task to your sheet. If it works, you should see a new row in your sheet within seconds.</p>
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn btn-blue" onclick="sendTestSession()">📤 Send Test Task</button>
+      <button class="btn btn-gray" onclick="clearResult('postResult')">Clear</button>
+    </div>
+    <div class="result" id="postResult">Result will appear here…</div>
+  </div>
+
+  <!-- STEP 3: CUSTOM PAYLOAD -->
+  <div class="card">
+    <h2>Step 3 — Send custom payload (advanced)</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Paste a payload your extension is actually sending to test it manually.</p>
+    <label>JSON Payload</label>
+    <textarea id="customPayload">{
+  "email": "test@company.com",
+  "sessions": [
+    {
+      "taskId": "task-123",
+      "taskName": "Test Task",
+      "jobName": "Test Job",
+      "stage": "Review",
+      "status": "Completed",
+      "startTime": 1743300000000,
+      "durationMs": 300000,
+      "url": "https://example.com/task/123",
+      "isRevisit": false
+    }
+  ]
+}</textarea>
+    <div class="row">
+      <button class="btn btn-blue" onclick="sendCustom()">📤 Send Custom Payload</button>
+      <button class="btn btn-gray" onclick="resetCustom()">Reset to Default</button>
+    </div>
+    <div class="result" id="customResult">Result will appear here…</div>
+  </div>
+
+  <!-- DIAGNOSTICS -->
+  <div class="card">
+    <h2>Common issues checklist</h2>
+    <div id="checks">
+      <div class="check-row"><span class="check-icon">⬜</span><span>Run Step 1 first to populate checks.</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function getUrl() {
+  var url = document.getElementById('urlInput').value.trim();
+  if(!url) { alert('Paste your Web App URL first.'); return null; }
+  if(!url.includes('script.google.com')) { alert('That doesn\'t look like a Google Apps Script URL.\nIt should start with: https://script.google.com/macros/s/'); return null; }
+  if(!url.endsWith('/exec')) { alert('URL must end with /exec, not /dev or anything else.'); return null; }
+  return url;
+}
+
+async function testGet() {
+  var url = getUrl(); if(!url) return;
+  var el = document.getElementById('getResult');
+  el.innerHTML = '⏳ Checking…';
+  try {
+    // GET via no-cors proxy won't return body, so we just check status
+    var resp = await fetch(url, { method: 'GET', mode: 'no-cors' });
+    el.innerHTML = '<span class="ok">✅ URL is reachable! Status: ' + resp.status + ' (or "0" for no-cors — that\'s normal).\n\nNext: check your browser\'s Network tab to see the actual response body.\nOr open the URL directly in a new tab — you should see:\n{"ok":true,"message":"Tasky Sheet v9 is live!"}</span>';
+    renderChecks(true, null);
+  } catch(e) {
+    el.innerHTML = '<span class="err">❌ Could not reach URL: ' + e.message + '\n\nPossible causes:\n• Wrong URL\n• Script not deployed\n• Network issue</span>';
+    renderChecks(false, e.message);
+  }
+}
+
+async function sendTestSession() {
+  var url = getUrl(); if(!url) return;
+  var el = document.getElementById('postResult');
+  el.innerHTML = '⏳ Sending test task…';
+
+  var now = Date.now();
+  var payload = {
+    email: 'debug-test@tasky.test',
+    sessions: [{
+      taskId:     'debug-' + now,
+      taskName:   '🔍 Debug Test Task — ' + new Date().toLocaleTimeString(),
+      jobName:    'Debug Job',
+      stage:      'Review',
+      status:     'Completed',
+      startTime:  now - 300000,   // 5 min ago
+      durationMs: 300000,          // 5 min
+      url:        'https://example.com/debug',
+      isRevisit:  false
+    }]
+  };
+
+  await sendPayload(payload, el, 'postResult');
+}
+
+async function sendCustom() {
+  var url = getUrl(); if(!url) return;
+  var raw = document.getElementById('customPayload').value.trim();
+  var el  = document.getElementById('customResult');
+  var payload;
+  try { payload = JSON.parse(raw); }
+  catch(e) { el.innerHTML = '<span class="err">❌ Invalid JSON: ' + e.message + '</span>'; return; }
+  await sendPayload(payload, el, 'customResult');
+}
+
+async function sendPayload(payload, el, elId) {
+  var url = getUrl(); if(!url) return;
+  el.innerHTML = '⏳ Sending…\n\nPayload:\n' + JSON.stringify(payload, null, 2);
+  try {
+    var resp = await fetch(url, {
+      method: 'POST',
+      mode:   'no-cors',  // required for Apps Script
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    // no-cors means we can't read the response body from JS
+    // but if it didn't throw, the POST was sent
+    el.innerHTML = '<span class="ok">✅ POST sent successfully!\n\n' +
+      'Because of browser CORS rules, we can\'t read the response here.\n' +
+      'To see what the script received:\n' +
+      '  1. Go to script.google.com\n' +
+      '  2. Open your Tasky project\n' +
+      '  3. Click Executions in the left sidebar\n' +
+      '  4. Find the most recent doPost entry\n' +
+      '  5. Expand it to see the Logger.log output\n\n' +
+      'Payload sent:\n' + JSON.stringify(payload, null, 2) + '</span>';
+  } catch(e) {
+    el.innerHTML = '<span class="err">❌ POST failed: ' + e.message + '</span>';
+  }
+}
+
+function renderChecks(urlOk, errMsg) {
+  var checks = [
+    { ok: urlOk,                      text: 'Web App URL is reachable' },
+    { ok: urlOk,                      text: 'URL ends with /exec (not /dev)' },
+    { ok: true,                       text: 'Execute as: Me — set during deployment' },
+    { ok: true,                       text: 'Who has access: Anyone — set during deployment' },
+    { ok: true,                       text: 'Script was authorised (you clicked Allow)' },
+    { ok: null,                       text: 'Extension is sending sessions[] with startTime values' },
+    { ok: null,                       text: 'sessions[].isRevisit is false (not true)' },
+    { ok: null,                       text: 'After sending, check Executions log for [Tasky] entries' },
+  ];
+
+  document.getElementById('checks').innerHTML = checks.map(function(c) {
+    var icon = c.ok === true ? '✅' : c.ok === false ? '❌' : '⬜';
+    var bg   = c.ok === true ? '#e6f4ea' : c.ok === false ? '#fce8e6' : '#f8fafd';
+    return '<div class="check-row" style="background:' + bg + '"><span class="check-icon">' + icon + '</span><span>' + c.text + '</span></div>';
+  }).join('');
+}
+
+function clearResult(id) { document.getElementById(id).innerHTML = 'Cleared.'; }
+
+function resetCustom() {
+  document.getElementById('customPayload').value = JSON.stringify({
+    email: 'test@company.com',
+    sessions: [{
+      taskId: 'task-123', taskName: 'Test Task', jobName: 'Test Job',
+      stage: 'Review', status: 'Completed',
+      startTime: Date.now() - 300000, durationMs: 300000,
+      url: 'https://example.com/task/123', isRevisit: false
+    }]
+  }, null, 2);
+}
+</script>
+</body>
+</html>

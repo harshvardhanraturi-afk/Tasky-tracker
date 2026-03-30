@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tasky Setup Guide</title>
+<style>
+:root{--blue:#1a73e8;--green:#34a853;--bg:#f0f4f9;--card:#fff;--border:#e0e0e0;--text:#1f1f1f;--muted:#5f6368}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:32px 20px}
+.wrap{max-width:720px;margin:0 auto}
+.hero{background:var(--blue);color:#fff;border-radius:16px;padding:32px;margin-bottom:28px;text-align:center}
+.hero h1{font-size:28px;font-weight:800;margin-bottom:8px}
+.hero p{font-size:15px;opacity:.85}
+.section{background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.section h2{font-size:17px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.section p{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6}
+.step{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+.step:last-child{margin-bottom:0}
+.num{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-body{flex:1}
+.step-body strong{font-size:13px;display:block;margin-bottom:3px}
+.step-body span{font-size:12px;color:var(--muted);line-height:1.6}
+.code{background:#f0f4f9;border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-family:monospace;font-size:12px;word-break:break-all;margin-top:8px;position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;background:var(--blue);color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer}
+.copy-btn:hover{background:#1557b0}
+.pill{display:inline-block;background:#e8f0fe;color:var(--blue);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;margin-left:6px}
+.pill-green{background:#e6f4ea;color:#137333}
+.pill-orange{background:#fff3e0;color:#e65100}
+.arch{background:#f8fafd;border:1px solid var(--border);border-radius:10px;padding:20px;margin:16px 0;font-size:12px;line-height:2}
+.arch-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.arch-box{background:#fff;border:1.5px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700}
+.arch-box.blue{border-color:var(--blue);color:var(--blue);background:#e8f0fe}
+.arch-box.green{border-color:var(--green);color:#137333;background:#e6f4ea}
+.arch-box.orange{border-color:#e65100;color:#e65100;background:#fff3e0}
+.arrow{color:var(--muted);font-size:18px}
+.faq{margin-top:6px}
+.faq details{border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.faq summary{padding:12px 16px;font-size:13px;font-weight:700;cursor:pointer;background:#f8fafd;list-style:none;display:flex;justify-content:space-between}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"›";font-size:18px;color:var(--muted);transform:rotate(90deg);display:inline-block}
+details[open] summary::after{transform:rotate(-90deg)}
+.faq .faq-body{padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <h1>⏱ Tasky Setup Guide</h1>
+    <p>Connect your extension so every task goes straight to your Google Sheet</p>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="section">
+    <h2>🗺 How it works</h2>
+    <p>Each person has their own Google Sheet. The Tasky extension sends your task data directly to it — no middleman, no shared server needed for your personal data.</p>
+    <div class="arch">
+      <div class="arch-row">
+        <div class="arch-box blue">Tasky Extension</div>
+        <div class="arrow">→</div>
+        <div class="arch-box green">Your Google Apps Script</div>
+        <div class="arrow">→</div>
+        <div class="arch-box green">Your Google Sheet</div>
+      </div>
+      <div class="arch-row" style="margin-top:4px">
+        <div class="arch-box blue">Tasky Extension</div>
+        <div class="arrow">→</div>
+        <div class="arch-box orange">Team Dashboard Server</div>
+        <div class="arrow">→</div>
+        <div class="arch-box orange">Live Team Dashboard</div>
+      </div>
+    </div>
+    <span style="font-size:11px;color:var(--muted)">The extension can send to both at the same time. Your Sheet gets your personal history; the dashboard shows the whole team live.</span>
+  </div>
+
+  <!-- STEP 1: CREATE SHEET -->
+  <div class="section">
+    <h2>📋 Step 1 — Create your Google Sheet</h2>
+    <p>This is the spreadsheet where all your tasks will be stored.</p>
+    <div class="step">
+      <div class="num">1</div>
+      <div class="step-body">
+        <strong>Go to Google Sheets</strong>
+        <span>Visit <a href="https://sheets.google.com" target="_blank">sheets.google.com</a> and click <b>+ Blank</b> to create a new spreadsheet.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div class="step-body">
+        <strong>Name your spreadsheet</strong>
+        <span>Click "Untitled spreadsheet" at the top and rename it to something like <b>Tasky – My Tasks</b>.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: ADD SCRIPT -->
+  <div class="section">
+    <h2>⚙️ Step 2 — Add the Apps Script</h2>
+    <p>This script receives data from your extension and writes it to the sheet.</p>
+    <div class="step">
+      <div class="num">1</div>
+      <div class="step-body">
+        <strong>Open Apps Script</strong>
+        <span>In your spreadsheet, click <b>Extensions → Apps Script</b>. A new tab opens with a code editor.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div class="step-body">
+        <strong>Replace all the code</strong>
+        <span>Select everything in the editor (Ctrl+A / Cmd+A), delete it, then paste the entire contents of <b>google-apps-script.js</b> (included in this zip).</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div class="step-body">
+        <strong>Save the project</strong>
+        <span>Press <b>Ctrl+S</b> (or Cmd+S on Mac). You can name the project anything, e.g. "Tasky".</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: DEPLOY -->
+  <div class="section">
+    <h2>🚀 Step 3 — Deploy as a Web App</h2>
+    <p>This gives the script a URL that your extension can call.</p>
+    <div class="step">
+      <div class="num">1</div>
+      <div class="step-body">
+        <strong>Click Deploy → New deployment</strong>
+        <span>Top-right of the Apps Script editor.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div class="step-body">
+        <strong>Configure the deployment</strong>
+        <span>
+          • <b>Select type</b>: Web App<br/>
+          • <b>Execute as</b>: Me (your Google account)<br/>
+          • <b>Who has access</b>: Anyone
+        </span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div class="step-body">
+        <strong>Click Deploy and authorise</strong>
+        <span>Google will ask you to authorise the script. Click <b>Authorise access → Advanced → Go to [project name] → Allow</b>.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">4</div>
+      <div class="step-body">
+        <strong>Copy your Web App URL</strong>
+        <span>You'll see a URL like:</span>
+        <div class="code">
+          https://script.google.com/macros/s/<b>XXXXXXXXXXXXXXXXX</b>/exec
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <span style="margin-top:6px;display:block">⚠️ Keep this URL private — anyone with it can send data to your sheet.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: CONNECT EXTENSION -->
+  <div class="section">
+    <h2>🔌 Step 4 — Connect the extension</h2>
+    <p>Tell the Tasky extension to send your data to your Google Sheet.</p>
+    <div class="step">
+      <div class="num">1</div>
+      <div class="step-body">
+        <strong>Open Tasky extension settings</strong>
+        <span>Click the Tasky icon in Chrome → open Settings or the ⚙️ icon.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div class="step-body">
+        <strong>Find the API / Endpoint field</strong>
+        <span>Look for a field labelled <b>Google Sheets URL</b>, <b>Web App URL</b>, or <b>API Endpoint</b>.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div class="step-body">
+        <strong>Paste your Web App URL and save</strong>
+        <span>Paste the URL from Step 3 → click <b>Save</b> or <b>Connect</b>.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">4</div>
+      <div class="step-body">
+        <strong>Test it</strong>
+        <span>Complete or park a task. Within a minute you should see a new row appear in your Google Sheet under a tab named after your email username.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT YOU GET -->
+  <div class="section">
+    <h2>📊 What you get in your sheet</h2>
+    <p>Three auto-managed tabs are created for you:</p>
+    <div class="step">
+      <div class="num">1</div>
+      <div class="step-body">
+        <strong>Your name tab (e.g. "john")</strong>
+        <span>Every task you complete, park, or block — one row per task with full details: task name, job, stage, status, start/end time, duration, and a link back to the task.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div class="step-body">
+        <strong>📊 Summary</strong>
+        <span>Daily totals — completed, parked, blocked, total time, average per task. Auto-refreshes every time new tasks come in.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div class="step-body">
+        <strong>⚡ Active</strong>
+        <span>Shows your current status: what task you're working on right now and how many tasks are parked. Updated by the heartbeat every minute.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="section">
+    <h2>❓ FAQ</h2>
+    <div class="faq">
+      <details>
+        <summary>Do I need to set this up again if the script is updated?</summary>
+        <div class="faq-body">Yes — if you receive a new version of <code>google-apps-script.js</code>, go back to Extensions → Apps Script, replace the code, then click <b>Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy</b>. Do NOT create a new deployment — update the existing one so the URL stays the same.</div>
+      </details>
+      <details>
+        <summary>Can I also use the team dashboard at the same time?</summary>
+        <div class="faq-body">Yes. The extension can send to multiple URLs. Add your Google Apps Script URL for your personal sheet AND the team server URL for the live dashboard. Both receive the same data simultaneously.</div>
+      </details>
+      <details>
+        <summary>Is my data private?</summary>
+        <div class="faq-body">Your Google Sheet is private to your Google account. Only you can see it unless you share it. The "Anyone" access on the Web App only means the extension can post data to it — it does NOT give anyone read access to the sheet itself.</div>
+      </details>
+      <details>
+        <summary>Why do I need "Execute as: Me"?</summary>
+        <div class="faq-body">This means the script runs with your Google account's permissions, so it can write to your sheet. If you set it to "Execute as: User accessing the web app", the extension (which has no Google login) would have no permission to write anything.</div>
+      </details>
+      <details>
+        <summary>Tasks aren't appearing in my sheet — what do I check?</summary>
+        <div class="faq-body">
+          1. Open your Web App URL directly in a browser — you should see <code>{"ok":true,"message":"Tasky Sheet v9 is live!"}</code><br/>
+          2. Check the extension settings — make sure the URL ends in <code>/exec</code>, not <code>/dev</code><br/>
+          3. In Apps Script → Executions — you can see every call and any errors<br/>
+          4. Make sure you authorised the script (Step 3 → authorise access)
+        </div>
+      </details>
+      <details>
+        <summary>How do I update the script without losing my data?</summary>
+        <div class="faq-body">Your data is in the spreadsheet rows — the script never deletes rows. You can update the script code any time without affecting existing data. Just replace the code and redeploy as a new version of the same deployment.</div>
+      </details>
+    </div>
+  </div>
+
+</div>
+<script>
+function copyCode(btn) {
+  var code = btn.parentElement.textContent.replace('Copy','').trim();
+  navigator.clipboard.writeText(code).then(function(){
+    btn.textContent='Copied!';
+    setTimeout(function(){ btn.textContent='Copy'; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
