@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tasky Team Dashboard</title>
+<style>
+:root{--blue:#1a73e8;--green:#34a853;--red:#ea4335;--orange:#f9ab00;--bg:#f0f4f9;--card:#fff;--border:#e0e0e0;--text:#1f1f1f;--muted:#5f6368;--radius:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:#1a73e8;color:#fff;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.logo{width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.topbar h1{font-size:18px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.topbar-sub{font-size:11px;opacity:.8}
+.btn{padding:8px 16px;border-radius:6px;border:none;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s;text-decoration:none}
+.btn-white{background:#fff;color:#1a73e8}.btn-white:hover{background:#e8f0fe}
+.btn-green{background:#34a853;color:#fff}.btn-green:hover{background:#2d9247}
+.page{padding:20px 24px;max-width:1300px;margin:0 auto}
+.filters{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.filters span{font-size:12px;font-weight:700;color:var(--muted)}
+.fb{padding:6px 14px;border-radius:20px;border:2px solid var(--border);background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s}
+.fb.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+input[type=date]{padding:6px 10px;border:2px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;outline:none}
+input[type=date]:focus{border-color:var(--blue)}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.sc{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:16px 18px}
+.sc-label{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:6px;letter-spacing:.5px}
+.sc-val{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+.sc-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.c-blue .sc-val{color:var(--blue)}.c-green .sc-val{color:var(--green)}
+.c-orange .sc-val{color:#b06000}.c-red .sc-val{color:var(--red)}.c-purple .sc-val{color:#7b1fa2}
+.layout{display:grid;grid-template-columns:1fr 290px;gap:16px}
+.tcard{background:#fff;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden}
+.thead{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ttitle{font-size:15px;font-weight:700}
+.tsub{font-size:11px;color:var(--muted);margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{padding:9px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);background:#f8fafd;border-bottom:1px solid var(--border);letter-spacing:.4px;white-space:nowrap}
+tbody tr.main-row{border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .1s}
+tbody tr.main-row:hover{background:#f8fafd}
+td{padding:11px 14px;vertical-align:middle}
+.urow{display:flex;align-items:center;gap:9px}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.uemail{font-weight:600;font-size:13px}
+.usub{font-size:10px;color:var(--muted);margin-top:1px}
+.badge{background:#e8f0fe;color:var(--blue);border-radius:20px;padding:3px 9px;font-size:12px;font-weight:700;display:inline-block}
+.bar-bg{height:4px;background:#e8eaed;border-radius:2px;width:50px;display:inline-block;margin-left:6px;vertical-align:middle;overflow:hidden}
+.bar-fg{height:100%;background:var(--blue);border-radius:2px}
+.tval{font-weight:600;font-size:13px}
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700}
+.pill-green{background:#e6f4ea;color:#137333}
+.pill-blue{background:#e8f0fe;color:#1a73e8}
+.pill-orange{background:#fff3e0;color:#e65100}
+.pill-gray{color:#9aa0a6;font-size:11px}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.dot-green{background:#34a853;animation:pulse 2s infinite}
+.dot-blue{background:#1a73e8;animation:pulse 2s infinite}
+.dot-orange{background:#f9ab00}
+.dot-gray{background:#dadce0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+tr.drill-row{display:none}
+tr.drill-row.open{display:table-row}
+.drill-panel{background:#f8fafd;border-top:1px solid var(--border)}
+.drill-inner{padding:14px 18px}
+.drill-title{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.drill-close{background:none;border:none;font-size:16px;cursor:pointer;color:var(--muted);margin-left:auto}
+.drill-list{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto}
+.drill-item{background:#fff;border:1px solid var(--border);border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.drill-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drill-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.drill-right{text-align:right;flex-shrink:0}
+.drill-dur{font-size:12px;font-weight:700;color:var(--blue);font-variant-numeric:tabular-nums}
+.drill-time{font-size:10px;color:var(--muted);margin-top:1px}
+.sbadge{font-size:9px;font-weight:700;border-radius:3px;padding:1px 5px;text-transform:uppercase}
+.sb-completed{background:#e6f4ea;color:#137333}
+.sb-parked{background:#fff3e0;color:#e65100}
+.sb-blocked{background:#fce8e6;color:#c5221f}
+.sb-senior{background:#fce8e6;color:#c5221f}
+.sb-review{background:#e8f0fe;color:#1a73e8}
+.sidebar{display:flex;flex-direction:column;gap:14px}
+.lb-item{padding:11px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f5f5f5}
+.lb-item:last-child{border-bottom:none}
+.medal{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.gold{background:#fff3cd;color:#856404}.silver{background:#f0f0f0;color:#555}
+.bronze{background:#fde8e0;color:#9b4400}.other{background:#f0f4f9;color:var(--muted)}
+.lb-info{flex:1;min-width:0}
+.lb-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-sub{font-size:11px;color:var(--muted)}
+.lb-num{font-size:18px;font-weight:700;color:var(--blue)}
+.feed-item{padding:10px 16px;display:flex;align-items:flex-start;gap:8px;border-bottom:1px solid #f5f5f5}
+.feed-item:last-child{border-bottom:none}
+.feed-text{font-size:12px;line-height:1.4}
+.feed-time{font-size:10px;color:var(--muted);margin-top:2px}
+.empty{padding:32px 20px;text-align:center;color:var(--muted);font-size:13px}
+.loading-bar{height:3px;background:var(--blue);width:0%;transition:width .3s;position:fixed;top:0;left:0;z-index:999}
+@media(max-width:1000px){.layout{grid-template-columns:1fr}.cards{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.cards{grid-template-columns:1fr 1fr}.page{padding:12px}}
+
+/* EXPORT MODAL */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center}
+.modal-backdrop.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:28px;width:380px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.18)}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:6px}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+.modal-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.eopt{padding:10px 14px;border:2px solid var(--border);border-radius:8px;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);text-align:center;transition:all .15s}
+.eopt.sel{border-color:var(--blue);background:#e8f0fe;color:var(--blue)}
+.modal-date{margin-bottom:18px}
+.modal-date label{font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px}
+.modal-date input{width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;outline:none}
+.modal-date input:focus{border-color:var(--blue)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.btn-cancel{background:#f0f4f9;color:var(--muted)}.btn-cancel:hover{background:#e0e0e0}
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loadBar"></div>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">⏱</div>
+    <div>
+      <h1>Tasky Team Dashboard</h1>
+      <div class="topbar-sub" id="topSub">Loading…</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span id="lastUpdated" style="font-size:11px;opacity:.8"></span>
+    <button class="btn btn-white" onclick="loadData(true)">↻ Refresh</button>
+    <button class="btn btn-green" onclick="openExportModal()">⬇ Export CSV</button>
+  </div>
+</div>
+
+<div class="page">
+  <div class="filters">
+    <span>Show:</span>
+    <button class="fb active" onclick="setFilter('today',this)">Today</button>
+    <button class="fb" onclick="setFilter('yesterday',this)">Yesterday</button>
+    <button class="fb" onclick="setFilter('week',this)">This Week</button>
+    <button class="fb" onclick="setFilter('all',this)">All Time</button>
+    <input type="date" id="dateIn" onchange="setFilter('custom',null,this.value)"/>
+  </div>
+
+  <div class="cards">
+    <div class="sc c-blue"><div class="sc-label">Completed Tasks</div><div class="sc-val" id="sTasks">—</div><div class="sc-sub" id="sTasksSub">today</div></div>
+    <div class="sc c-green"><div class="sc-label">Total Time Worked</div><div class="sc-val" id="sTime">—</div><div class="sc-sub">combined</div></div>
+    <div class="sc c-orange"><div class="sc-label">Active Now</div><div class="sc-val" id="sActive">—</div><div class="sc-sub">online in last 5 min</div></div>
+    <div class="sc c-purple"><div class="sc-label">Parked Tasks</div><div class="sc-val" id="sParked">—</div><div class="sc-sub">on break / paused</div></div>
+    <div class="sc c-red"><div class="sc-label">Blocked Tasks</div><div class="sc-val" id="sBlocked">—</div><div class="sc-sub">need attention</div></div>
+  </div>
+
+  <div class="layout">
+    <div class="tcard">
+      <div class="thead">
+        <div><div class="ttitle">Contributor Breakdown</div><div class="tsub" id="tableSub"></div></div>
+      </div>
+      <div id="tableWrap"><div class="empty">Loading data…</div></div>
+    </div>
+    <div class="sidebar">
+      <div class="tcard">
+        <div class="thead"><div class="ttitle">🏆 Leaderboard</div></div>
+        <div id="lbWrap"></div>
+      </div>
+      <div class="tcard">
+        <div class="thead"><div class="ttitle">⚡ Currently Active</div></div>
+        <div id="activeWrap"></div>
+      </div>
+      <div class="tcard">
+        <div class="thead"><div class="ttitle">🚫 Blocked Tasks</div></div>
+        <div id="blockedWrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+var summaryData  = null;   // from /api/summary — lightweight contributor list
+var activeFilter = 'today';
+var customDate   = null;
+var openDrill    = null;
+var lastEtag     = null;   // ETag from last /api/summary — skip render on 304
+
+var COLORS = ['#1a73e8','#34a853','#ea4335','#f9ab00','#9c27b0',
+              '#ff5722','#00acc1','#795548','#e91e63','#607d8b'];
+
+function col(email) {
+  var h=0; for(var i=0;i<email.length;i++) h=(h*31+email.charCodeAt(i))%COLORS.length; return COLORS[h];
+}
+function ini(email) {
+  var n=email.split('@')[0].split(/[._\-]/);
+  return n.length>=2?(n[0][0]+n[1][0]).toUpperCase():email.slice(0,2).toUpperCase();
+}
+
+// ── Formatters ────────────────────────────────────────────────────────────────
+function pad(n){ return String(n).padStart(2,'0'); }
+
+function dur(ms) {
+  if(!ms||ms<0) return '0s';
+  var s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),r=s%60;
+  if(h>0) return h+'h '+m+'m'; if(m>0) return m+'m '+r+'s'; return r+'s';
+}
+function durHMS(ms) {
+  if(!ms||ms<0) return '00:00:00';
+  var s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),r=s%60;
+  return pad(h)+':'+pad(m)+':'+pad(r);
+}
+function localTime(ts) { return ts?new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''; }
+function localTimeFull(ts) {
+  if(!ts) return '';
+  var d=new Date(ts),h=d.getHours(),m=d.getMinutes(),s=d.getSeconds(),ap=h>=12?'PM':'AM';
+  h=h%12||12; return pad(h)+':'+pad(m)+':'+pad(s)+' '+ap;
+}
+function localDate(ts) { if(!ts) return ''; var d=new Date(ts); return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear(); }
+function localDay(ts)  { return ts?new Date(ts).toLocaleDateString('en-US',{weekday:'long'}):''; }
+
+function ago(iso) {
+  if(!iso) return 'never';
+  var diff=Date.now()-new Date(iso).getTime();
+  if(isNaN(diff)||diff<0) return 'just now';
+  var secs=Math.floor(diff/1000);
+  if(secs<10)  return 'just now';
+  if(secs<60)  return secs+'s ago';
+  var mins=Math.floor(secs/60);
+  if(mins<60)  return mins+'m ago';
+  var hrs=Math.floor(mins/60);
+  if(hrs<24)   return hrs+'h ago';
+  return new Date(iso).toLocaleDateString();
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Render — works entirely off summaryData (no session arrays needed) ─────────
+function render() {
+  if(!summaryData) return;
+
+  var contribs = summaryData.contributors || [];
+  var now      = new Date();
+  var ACTIVE_MS = 5*60*1000;
+
+  // Each contributor in summaryData has: email, lastSeen, currentTask,
+  // parkedTasks, active (bool), sessionCount, allTimeTasks, totalTimeMs
+  // For the table we show allTimeTasks/totalTimeMs filtered by date range.
+  // Because session-level filtering requires full sessions, we show totals
+  // for "All Time" from precomputed fields, and note that drill-down loads
+  // the filtered view. For Today/Week filters we use sessionCount as a proxy
+  // indicator — the actual numbers come from drill-down.
+
+  // Sort: active first, then by allTimeTasks desc
+  var rows = contribs.slice().sort(function(a,b){
+    if(a.active!==b.active) return a.active?-1:1;
+    return (b.allTimeTasks||0)-(a.allTimeTasks||0);
+  }).filter(function(c){ return c.sessionCount>0||c.active||(c.parkedTasks||[]).length>0; });
+
+  var totActive  = rows.filter(function(r){return r.active;}).length;
+  var totParked  = rows.reduce(function(a,r){return a+(r.parkedTasks||[]).length;},0);
+  var totMs      = rows.reduce(function(a,r){return a+(r.totalTimeMs||0);},0);
+  var totTasks   = rows.reduce(function(a,r){return a+(r.allTimeTasks||0);},0);
+
+  var fl={today:'today',yesterday:'yesterday',week:'this week',all:'all time',custom:customDate||''}[activeFilter];
+
+  document.getElementById('sTasks').textContent    = totTasks;
+  document.getElementById('sTasksSub').textContent = fl;
+  document.getElementById('sTime').textContent     = dur(totMs);
+  document.getElementById('sActive').textContent   = totActive;
+  document.getElementById('sParked').textContent   = totParked;
+  document.getElementById('sBlocked').textContent  = '—';
+  document.getElementById('tableSub').textContent  = rows.length+' contributors · '+fl;
+  document.getElementById('topSub').textContent    = contribs.length+' contributors loaded';
+
+  // ── TABLE — only renders rows, no session data needed ──────────────────────
+  var tw = document.getElementById('tableWrap');
+  if(rows.length===0) {
+    tw.innerHTML='<div class="empty">No contributors yet.</div>';
+  } else {
+    var maxTasks = Math.max.apply(null, rows.map(function(r){return r.allTimeTasks||0;})||[1]) || 1;
+    var h='<table><thead><tr><th>Contributor</th><th>✅ Done</th><th>Time Worked</th><th>Avg/Task</th><th>⏸ Parked</th><th>Status</th><th>Last Seen</th></tr></thead><tbody>';
+    rows.forEach(function(r) {
+      var pct   = Math.round(((r.allTimeTasks||0)/maxTasks)*100);
+      var avg   = (r.allTimeTasks>0&&r.totalTimeMs>0)?Math.floor(r.totalTimeMs/r.allTimeTasks):0;
+      var c     = col(r.email);
+      var name  = r.email.split('@')[0];
+      var safe  = r.email.replace(/[@.]/g,'-');
+      var hasP  = (r.parkedTasks||[]).length>0;
+
+      var status = r.active && r.currentTask
+        ? '<span class="pill pill-green"><span class="dot dot-green"></span>Active</span>'
+        : r.active
+          ? '<span class="pill pill-blue"><span class="dot dot-blue"></span>Online</span>'
+          : hasP
+            ? '<span class="pill pill-orange"><span class="dot dot-orange"></span>On Break</span>'
+            : '<span class="pill-gray"><span class="dot dot-gray"></span> Offline</span>';
+
+      h+='<tr class="main-row" onclick="toggleDrill(\''+r.email+'\')">'+
+         '<td><div class="urow"><div class="avatar" style="background:'+c+'">'+ini(r.email)+'</div>'+
+         '<div><div class="uemail">'+esc(r.email)+'</div><div class="usub">'+esc(name)+'</div></div></div></td>'+
+         '<td><span class="badge">'+(r.allTimeTasks||0)+'</span><div class="bar-bg"><div class="bar-fg" style="width:'+pct+'%"></div></div></td>'+
+         '<td><span class="tval">'+dur(r.totalTimeMs||0)+'</span></td>'+
+         '<td><span class="tval">'+(avg>0?dur(avg):'—')+'</span></td>'+
+         '<td>'+(hasP?'<span class="sbadge sb-parked">'+r.parkedTasks.length+' now</span>':'<span style="color:#ccc">—</span>')+'</td>'+
+         '<td>'+status+'</td>'+
+         '<td style="font-size:11px;color:var(--muted)">'+ago(r.lastSeen)+'</td>'+
+         '</tr>'+
+         '<tr class="drill-row" id="dr-'+safe+'">'+
+         '<td colspan="7" style="padding:0"><div class="drill-panel"><div class="drill-inner">'+
+         '<div class="drill-title"><div class="avatar" style="background:'+c+';width:22px;height:22px;font-size:10px">'+ini(r.email)+'</div>'+
+         esc(name)+'\'s sessions <button class="drill-close" onclick="closeDrill(\''+r.email+'\');event.stopPropagation()">✕</button></div>'+
+         '<div class="drill-list" id="dl-'+safe+'"><div class="empty" style="padding:12px">Click to expand…</div></div>'+
+         '</div></div></td></tr>';
+    });
+    h+='</tbody></table>';
+    tw.innerHTML=h;
+  }
+
+  // ── LEADERBOARD ────────────────────────────────────────────────────────────
+  var top5   = rows.slice(0,5);
+  var medals = ['🥇','🥈','🥉','4','5'];
+  var rnk    = ['gold','silver','bronze','other','other'];
+  document.getElementById('lbWrap').innerHTML = top5.length===0
+    ?'<div class="empty">No data yet</div>'
+    :top5.map(function(r,i){
+      return '<div class="lb-item"><div class="medal '+rnk[i]+'">'+medals[i]+'</div>'+
+             '<div class="lb-info"><div class="lb-name">'+esc(r.email.split('@')[0])+'</div>'+
+             '<div class="lb-sub">'+(r.allTimeTasks||0)+' done · '+dur(r.totalTimeMs||0)+'</div></div>'+
+             '<div class="lb-num">'+(r.allTimeTasks||0)+'</div></div>';
+    }).join('');
+
+  // ── ACTIVE NOW ─────────────────────────────────────────────────────────────
+  var actives = rows.filter(function(r){return r.active;});
+  document.getElementById('activeWrap').innerHTML = actives.length===0
+    ?'<div class="empty">No one active right now</div>'
+    :actives.map(function(r){
+      var task    = r.currentTask;
+      var hasTask = task&&(task.taskName||task.taskId);
+      return '<div class="feed-item"><div class="dot '+(hasTask?'dot-green':'dot-blue')+'" style="flex-shrink:0;margin-top:4px"></div>'+
+             '<div><div class="feed-text"><strong>'+esc(r.email.split('@')[0])+'</strong> '+(hasTask?'is working':'is online')+'</div>'+
+             (hasTask?'<div class="feed-text" style="color:var(--muted);font-size:11px">'+esc(task.taskName||task.taskId||'')+'</div>':'')+
+             (hasTask&&task.stage&&task.stage!=='Unknown'?'<div class="feed-time"><span class="sbadge '+(task.stage==='Senior Review'?'sb-senior':'sb-review')+'">'+esc(task.stage)+'</span></div>':'')+
+             '<div class="feed-time">'+ago(r.lastSeen)+'</div></div></div>';
+    }).join('');
+
+  // Blocked widget is populated via drill-down — clear it here
+  document.getElementById('blockedWrap').innerHTML = '<div class="empty" style="color:var(--muted);font-size:12px">Expand a contributor row to see blocked tasks.</div>';
+  document.getElementById('lastUpdated').textContent = '● Updated just now';
+}
+
+// ── Drill-down — lazy fetches sessions for ONE user ───────────────────────────
+function toggleDrill(email) {
+  var safe = email.replace(/[@.]/g,'-');
+  var row  = document.getElementById('dr-'+safe);
+  if(!row) return;
+  if(openDrill===email){ closeDrill(email); return; }
+  if(openDrill) closeDrill(openDrill);
+  openDrill = email;
+  row.classList.add('open');
+  loadDrillSessions(email, safe);
+}
+
+async function loadDrillSessions(email, safe) {
+  var dl = document.getElementById('dl-'+safe);
+  if(!dl) return;
+  dl.innerHTML = '<div class="empty" style="padding:12px">Loading sessions…</div>';
+
+  var url = '/api/sessions/'+encodeURIComponent(email)+'?filter='+activeFilter;
+  if(activeFilter==='custom'&&customDate) url+='&date='+customDate;
+
+  try {
+    var resp = await fetch(url);
+    var data = await resp.json();
+    renderDrillSessions(dl, data.sessions||[]);
+  } catch(e) {
+    dl.innerHTML = '<div class="empty" style="padding:12px;color:var(--red)">Failed to load sessions.</div>';
+  }
+}
+
+function renderDrillSessions(dl, sessions) {
+  if(sessions.length===0){
+    dl.innerHTML='<div class="empty" style="padding:12px">No sessions in this period.</div>';
+    return;
+  }
+  dl.innerHTML = sessions.map(function(s){
+    var st    = s.status||'Completed';
+    var stCls = st==='Parked'?'sb-parked':st==='Blocked'?'sb-blocked':'sb-completed';
+    var sub   = [s.stage&&s.stage!=='Unknown'?s.stage:null, s.jobName||null].filter(Boolean).join(' · ');
+    var endTs = s.startTime?s.startTime+(s.durationMs||0):0;
+    return '<div class="drill-item">'+
+           '<div style="flex:1;min-width:0">'+
+           '<div class="drill-name">'+esc(s.taskName||s.taskId||'')+'</div>'+
+           '<div class="drill-sub">'+(sub?esc(sub)+' · ':'')+'<span class="sbadge '+stCls+'">'+esc(st)+'</span>'+
+           (s.stage&&s.stage!=='Unknown'?'<span class="sbadge '+(s.stage==='Senior Review'?'sb-senior':'sb-review')+'" style="margin-left:3px">'+esc(s.stage)+'</span>':'')+
+           '</div></div>'+
+           '<div class="drill-right">'+
+           '<div class="drill-dur">'+durHMS(s.durationMs)+'</div>'+
+           '<div class="drill-time">'+localTime(s.startTime)+' – '+localTime(endTs)+'</div>'+
+           '</div></div>';
+  }).join('');
+}
+
+function closeDrill(email) {
+  var safe=email.replace(/[@.]/g,'-');
+  var row=document.getElementById('dr-'+safe);
+  if(row) row.classList.remove('open');
+  if(openDrill===email) openDrill=null;
+}
+
+// ── Export Modal ──────────────────────────────────────────────────────────────
+var exportPeriod = 'today';
+var exportDate   = null;
+
+function openExportModal() {
+  document.getElementById('exportModal').classList.add('open');
+}
+function closeExportModal(e) {
+  if(e && e.target !== document.getElementById('exportModal')) return;
+  document.getElementById('exportModal').classList.remove('open');
+}
+
+function selectExportPeriod(period, btn, date) {
+  exportPeriod = period;
+  exportDate   = date || null;
+  document.querySelectorAll('.eopt').forEach(function(b){ b.classList.remove('sel'); });
+  if(btn) btn.classList.add('sel');
+  var dateWrap = document.getElementById('exportDateWrap');
+  if(period === 'custom') {
+    dateWrap.style.display = 'block';
+    if(!btn) {
+      // triggered by date input change — find and highlight custom option
+      document.querySelectorAll('.eopt').forEach(function(b){
+        if(b.textContent.includes('Pick') || b.getAttribute('data-period')==='custom') b.classList.add('sel');
+      });
+    }
+  } else {
+    dateWrap.style.display = 'none';
+  }
+}
+
+async function doExport() {
+  var btn = document.getElementById('exportDownloadBtn');
+  btn.textContent = '⏳ Preparing…'; btn.disabled = true;
+  try {
+    var url = '/api/export?filter=' + exportPeriod;
+    if(exportPeriod === 'custom' && exportDate) url += '&date=' + exportDate;
+    var resp = await fetch(url);
+    if(!resp.ok) throw new Error('Server error ' + resp.status);
+    var blob = await resp.blob();
+    var a    = document.createElement('a');
+    a.href   = URL.createObjectURL(blob);
+    // Get filename from Content-Disposition header if available
+    var cd   = resp.headers.get('Content-Disposition') || '';
+    var match = cd.match(/filename="?([^"]+)"?/);
+    a.download = match ? match[1] : 'tasky-export.csv';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 100);
+    document.getElementById('exportModal').classList.remove('open');
+  } catch(e) {
+    alert('Export failed: ' + e.message);
+  } finally {
+    btn.textContent = '⬇ Download'; btn.disabled = false;
+  }
+}
+
+// ── Load data — ETag-aware, only re-renders when data actually changed ─────────
+async function loadData(force) {
+  var bar = document.getElementById('loadBar');
+  bar.style.width='30%';
+  try {
+    var headers = {};
+    if(!force && lastEtag) headers['If-None-Match'] = lastEtag;
+
+    var resp = await fetch('/api/summary', { headers: headers });
+    bar.style.width='70%';
+
+    if(resp.status===304) {
+      // Nothing changed — update timestamps in active panel only (cheap)
+      bar.style.width='100%';
+      refreshAgoTimes();
+      setTimeout(function(){bar.style.width='0%';},400);
+      return;
+    }
+
+    lastEtag    = resp.headers.get('ETag') || null;
+    summaryData = await resp.json();
+    bar.style.width='100%';
+    render();
+    setTimeout(function(){bar.style.width='0%';},400);
+
+    // Reload open drill-down with fresh data
+    if(openDrill) {
+      var safe=openDrill.replace(/[@.]/g,'-');
+      var dl=document.getElementById('dl-'+safe);
+      if(dl) loadDrillSessions(openDrill, safe);
+    }
+  } catch(e) {
+    bar.style.width='0%';
+    document.getElementById('tableWrap').innerHTML=
+      '<div class="empty"><b>⚠️ Could not load data</b><br>Make sure the server is running.</div>';
+  }
+}
+
+// ── Refresh "X ago" times without a full re-render ────────────────────────────
+// Called when server returns 304 (nothing changed) — keeps timestamps live
+function refreshAgoTimes() {
+  if(!summaryData) return;
+  var contribs = summaryData.contributors||[];
+  contribs.forEach(function(c) {
+    var safe = c.email.replace(/[@.]/g,'-');
+    // Update last-seen cells
+    var rows = document.querySelectorAll('tr.main-row');
+    rows.forEach(function(tr){
+      var emailEl = tr.querySelector('.uemail');
+      if(emailEl && emailEl.textContent===c.email) {
+        var cells = tr.querySelectorAll('td');
+        var lastCell = cells[cells.length-1];
+        if(lastCell) lastCell.textContent = ago(c.lastSeen);
+      }
+    });
+  });
+  document.getElementById('lastUpdated').textContent = '● Updated just now';
+}
+
+function setFilter(f, btn, date) {
+  activeFilter = f; customDate = date||null;
+  document.querySelectorAll('.fb').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  openDrill = null;
+  render();
+}
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+loadData(true);
+setInterval(loadData, 30000);
+</script>
+
+<!-- EXPORT MODAL -->
+<div class="modal-backdrop" id="exportModal" onclick="closeExportModal(event)">
+  <div class="modal">
+    <h2>⬇ Export CSV</h2>
+    <div class="modal-sub">Choose the time period to download</div>
+    <div class="modal-opts">
+      <button class="eopt sel" onclick="selectExportPeriod('today',this)">Today</button>
+      <button class="eopt" onclick="selectExportPeriod('yesterday',this)">Yesterday</button>
+      <button class="eopt" onclick="selectExportPeriod('week',this)">This Week</button>
+      <button class="eopt" onclick="selectExportPeriod('all',this)">All Time</button>
+    </div>
+    <div class="modal-date" id="exportDateWrap" style="display:none">
+      <label>Pick a specific date</label>
+      <input type="date" id="exportDateIn" onchange="selectExportPeriod('custom',null,this.value)"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeExportModal()">Cancel</button>
+      <button class="btn btn-green" id="exportDownloadBtn" onclick="doExport()">⬇ Download</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
